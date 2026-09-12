@@ -47,18 +47,12 @@ def translate_text(
         try:
             translated = translator.translate(text)
             if translated:
-                print(translated)
                 return translated
         except Exception as e:
             if attempt < max_retries - 1:
                 time.sleep(1.0 * (attempt + 1))
                 continue
-            # Fallback to original text instead of crashing the request
-            print(f"Transletor text failed after {max_retries} attempts. Returning original text.")
-            print(f"text: {text}")
             return text
-    print(f"Transletor text failed after {max_retries} attempts. Returning original text.")
-    print(f"text: {text}")
     return text
 
 
@@ -151,9 +145,5 @@ def translate_pages(
                             continue
                         page_translated = page_text  # Final fallback to original text
                 translated_pages[idx] = page_translated
-
-    for page in translated_pages:
-        if page.strip():
-            print(page)
 
     return translated_pages
