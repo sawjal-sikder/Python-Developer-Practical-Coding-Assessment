@@ -1,12 +1,43 @@
+import re
 from rest_framework import serializers
 
 
 class WatermarkPDFSerializer(serializers.Serializer):
+    
+    POSITION_CHOICES = [
+        ("top-left", "Top Left"),
+        ("top-center", "Top Center"),
+        ("top-right", "Top Right"),
+        ("center", "Center"),
+        ("bottom-left", "Bottom Left"),
+        ("bottom-center", "Bottom Center"),
+        ("bottom-right", "Bottom Right"),
+    ]
+    
+    OPACITY_CHOICES = [
+        (0.25, "25%"),
+        (0.50, "50%"),
+        (0.75, "75%"),
+        (1.0, "100%"),
+    ]
+    
+    COLOR_CHOICES = [
+        ("#000000", "Black"),
+        ("#FFFFFF", "White"),
+        ("#FF0000", "Red"),
+        ("#00FF00", "Green"),
+        ("#0000FF", "Blue"),
+        ("#FFFF00", "Yellow"),
+        ("#FFA500", "Orange"),
+        ("#800080", "Purple"),
+        ("#00FFFF", "Cyan"),
+    ]
+    
     file = serializers.FileField()
     text = serializers.CharField(max_length=200)
-    position = serializers.CharField(max_length=20)
-    opacity = serializers.FloatField()
-    color = serializers.CharField(max_length=10)
+    position = serializers.ChoiceField(choices=POSITION_CHOICES)
+    opacity = serializers.ChoiceField(choices=OPACITY_CHOICES)
+    color = serializers.ChoiceField(choices=COLOR_CHOICES)
 
     def validate_file(self, value):
         if value.size == 0:
@@ -35,8 +66,6 @@ class WatermarkPDFSerializer(serializers.Serializer):
 
     def validate_color(self, value):
         val = value.strip()
-        # Regex to validate hex color code (with or without # prefix, 3 or 6 chars)
-        import re
         if not re.match(r"^#?[0-9a-fA-F]{3}$|^#?[0-9a-fA-F]{6}$", val):
             raise serializers.ValidationError("Color must be a valid hex color code, e.g., #FF0000.")
         return val

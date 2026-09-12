@@ -106,15 +106,14 @@ def create_watermark_page(text, position, opacity, color_hex, width, height):
         except Exception:
             font_name = "Helvetica"
             
-    # Set color and opacity/alpha transparency
-    # Ensure color starts with '#'
+
     if not color_hex.startswith("#"):
         color_hex = f"#{color_hex}"
         
     try:
         color = HexColor(color_hex)
     except Exception:
-        color = HexColor("#FF0000")  # Fallback to red if color format is invalid
+        color = HexColor("#FF0000")  
 
     c.setFillColor(color, alpha=opacity)
     c.setFont(font_name, 36)
@@ -131,7 +130,7 @@ def create_watermark_page(text, position, opacity, color_hex, width, height):
     elif position == "center":
         c.saveState()
         c.translate(width / 2, height / 2)
-        c.rotate(45)  # Diagonal watermark is standard for center positions
+        c.rotate(45) 
         c.drawCentredString(0, 0, text)
         c.restoreState()
     elif position == "bottom-left":
@@ -141,7 +140,6 @@ def create_watermark_page(text, position, opacity, color_hex, width, height):
     elif position == "bottom-right":
         c.drawRightString(width - margin, margin, text)
     else:
-        # Fallback to center if an invalid position is provided
         c.saveState()
         c.translate(width / 2, height / 2)
         c.rotate(45)
@@ -161,18 +159,17 @@ def apply_watermark(pdf_file, text, position, opacity, color_hex):
     pdf_file.seek(0)
     pdf_bytes = pdf_file.read()
     
-    # Open original PDF
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     
     for page in doc:
         rect = page.rect
         width, height = rect.width, rect.height
         
-        # Create watermark for this page size
+        # Create watermark
         wm_buffer = create_watermark_page(text, position, opacity, color_hex, width, height)
         wm_doc = fitz.open(stream=wm_buffer.read(), filetype="pdf")
         
-        # Overlay the watermark onto the page
+        # Overlay the watermark
         page.show_pdf_page(rect, wm_doc, 0)
         wm_doc.close()
         
