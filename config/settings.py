@@ -133,7 +133,8 @@ REST_FRAMEWORK = {
 
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Python Developer Practical Coding Assessment API',
+    # 'TITLE': 'Python Developer Practical Coding Assessment API',
+    'TITLE': 'rest_framework API ',
     'DESCRIPTION': 'Comprehensive RESTful API for the Python Developer Practical Coding Assessment. '
                    'Provides secure endpoints for Pdf Language Translator and pdf watermarks, ',
     'VERSION': '1.0.0',

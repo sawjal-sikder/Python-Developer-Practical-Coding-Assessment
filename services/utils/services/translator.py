@@ -1,6 +1,25 @@
 import time
-from deep_translator import GoogleTranslator
+import requests
 from deep_translator.exceptions import TranslationNotFound, LanguageNotSupportedException
+
+# Apply requests monkeypatch to bypass Google Translate 500 error for default python-requests User-Agent
+original_get = requests.get
+
+def patched_get(url, *args, **kwargs):
+    if "translate.google" in str(url):
+        headers = kwargs.get("headers") or {}
+        if "User-Agent" not in headers:
+            headers["User-Agent"] = (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            )
+            kwargs["headers"] = headers
+    return original_get(url, *args, **kwargs)
+
+requests.get = patched_get
+
+from deep_translator import GoogleTranslator
 
 
 def translate_text(
@@ -35,6 +54,7 @@ def translate_text(
                 continue
             # Fallback to original text instead of crashing the request
             return text
+        
     return text
 
 

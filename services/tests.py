@@ -87,6 +87,38 @@ class PDFProcessingUnitTests(TestCase):
         self.assertIsNotNone(generated_pdf_stream)
         self.assertTrue(len(generated_pdf_stream.getvalue()) > 0)
 
+    def test_pdf_generation_target_language_bengali(self):
+        # Generate PDF in Bengali and extract text to verify
+        bengali_pages = ["হ্যালো ওয়ার্ল্ড", "এটি বাংলা টেক্সট।"]
+        generated_pdf = generate_pdf(bengali_pages, target_language="bn")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertIn("হ", extracted_pages[0])
+        self.assertIn("বাংলা", extracted_pages[1])
+
+    def test_pdf_generation_target_language_english(self):
+        # Generate PDF in English and extract text to verify
+        english_pages = ["Hello World", "This is English text."]
+        generated_pdf = generate_pdf(english_pages, target_language="en")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertIn("Hello World", extracted_pages[0])
+        self.assertIn("This is English text.", extracted_pages[1])
+
+    def test_pdf_generation_boundary_overflow(self):
+        # Test boundary overflow to make sure we don't get an extra blank page
+        # 40 lines fit on 1 page with Paragraph style and spacing
+        pages_content = ["\n".join(f"Line {i+1}" for i in range(40))]
+        generated_pdf = generate_pdf(pages_content, target_language="en")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 1)
+        
+        # 41 lines overflow to Page 2
+        pages_content_overflow = ["\n".join(f"Line {i+1}" for i in range(41))]
+        generated_pdf_overflow = generate_pdf(pages_content_overflow, target_language="en")
+        extracted_pages_overflow = extract_text(generated_pdf_overflow)
+        self.assertEqual(len(extracted_pages_overflow), 2)
+
 
 class TranslatePDFAPITests(APITestCase):
     """

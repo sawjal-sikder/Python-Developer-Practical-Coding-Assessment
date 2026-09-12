@@ -44,7 +44,8 @@ class TranslatePDFView(APIView):
 
             # Generate new PDF
             translated_pdf = generate_pdf(
-                translated_pages
+                translated_pages,
+                target_language=target_language,
             )
 
             return FileResponse(
