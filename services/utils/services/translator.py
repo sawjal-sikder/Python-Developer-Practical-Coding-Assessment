@@ -47,6 +47,7 @@ def translate_text(
         try:
             translated = translator.translate(text)
             if translated:
+                print(translated)
                 return translated
         except Exception as e:
             if attempt < max_retries - 1:
@@ -145,5 +146,9 @@ def translate_pages(
                             continue
                         page_translated = page_text  # Final fallback to original text
                 translated_pages[idx] = page_translated
+
+    for page in translated_pages:
+        if page.strip():
+            print(page)
 
     return translated_pages
