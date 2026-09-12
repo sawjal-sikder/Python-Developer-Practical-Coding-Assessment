@@ -7,8 +7,16 @@ from reportlab.lib.colors import HexColor
 from services.utils.services.pdf_generator import (
     register_bangla_font,
     register_korean_font,
+    register_japanese_font,
+    register_arabic_font,
+    register_urdu_font,
+    register_hindi_font,
     FONT_NAME as BANGLA_FONT_NAME,
     KOREAN_FONT_NAME,
+    JAPANESE_FONT_NAME,
+    ARABIC_FONT_NAME,
+    URDU_FONT_NAME,
+    HINDI_FONT_NAME,
 )
 
 
@@ -26,6 +34,34 @@ def contains_korean(text):
     return bool(re.search(r"[\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f]", text))
 
 
+def contains_japanese(text):
+    """
+    Check if a string contains any Japanese (Hiragana, Katakana, or Kanji) characters.
+    """
+    return bool(re.search(r"[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]", text))
+
+
+def contains_hindi(text):
+    """
+    Check if a string contains any Devanagari Unicode characters.
+    """
+    return bool(re.search(r"[\u0900-\u097F]", text))
+
+
+def contains_arabic_script(text):
+    """
+    Check if a string contains any Arabic script characters.
+    """
+    return bool(re.search(r"[\u0600-\u06FF]", text))
+
+
+def contains_urdu_specific(text):
+    """
+    Check if a string contains Urdu-specific characters.
+    """
+    return bool(re.search(r"[\u0679\u0688\u0691\u0698\u06a9\u06af\u06ba\u06be\u06c1\u06c2\u06c3\u06d2\u06d3]", text))
+
+
 def create_watermark_page(text, position, opacity, color_hex, width, height):
     """
     Generate a single-page PDF containing the transparent styled watermark text in memory.
@@ -33,22 +69,41 @@ def create_watermark_page(text, position, opacity, color_hex, width, height):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=(width, height))
     
-    # Choose font: Use NotoSansBengali if Bangla text is detected,
-    # NotoSansKorean if Korean text is detected, otherwise fallback to standard Helvetica
+    # Choose font
     font_name = "Helvetica"
     if contains_bangla(text):
         try:
             register_bangla_font()
             font_name = BANGLA_FONT_NAME
         except Exception:
-            # Fallback to standard Helvetica if font registration fails
             font_name = "Helvetica"
     elif contains_korean(text):
         try:
             register_korean_font()
             font_name = KOREAN_FONT_NAME
         except Exception:
-            # Fallback to standard Helvetica if font registration fails
+            font_name = "Helvetica"
+    elif contains_japanese(text):
+        try:
+            register_japanese_font()
+            font_name = JAPANESE_FONT_NAME
+        except Exception:
+            font_name = "Helvetica"
+    elif contains_hindi(text):
+        try:
+            register_hindi_font()
+            font_name = HINDI_FONT_NAME
+        except Exception:
+            font_name = "Helvetica"
+    elif contains_arabic_script(text):
+        try:
+            if contains_urdu_specific(text):
+                register_urdu_font()
+                font_name = URDU_FONT_NAME
+            else:
+                register_arabic_font()
+                font_name = ARABIC_FONT_NAME
+        except Exception:
             font_name = "Helvetica"
             
     # Set color and opacity/alpha transparency

@@ -138,6 +138,43 @@ class PDFProcessingUnitTests(TestCase):
         self.assertIn("안녕하세요", extracted_pages[0])
         self.assertIn("한국어", extracted_pages[1])
 
+    def test_pdf_generation_target_language_japanese(self):
+        # Generate PDF in Japanese and extract text to verify
+        japanese_pages = ["こんにちは", "これは日本語のテキストです。"]
+        generated_pdf = generate_pdf(japanese_pages, target_language="ja")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertIn("こんにちは", extracted_pages[0])
+        self.assertIn("これは", extracted_pages[1])
+
+    def test_pdf_generation_target_language_hindi(self):
+        # Generate PDF in Hindi and extract text to verify
+        hindi_pages = ["नमस्ते", "यह हिंदी टेक्स्ट है।"]
+        generated_pdf = generate_pdf(hindi_pages, target_language="hi")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertIn("नम", extracted_pages[0])
+        self.assertIn("यह", extracted_pages[1])
+        self.assertIn("है", extracted_pages[1])
+
+    def test_pdf_generation_target_language_arabic(self):
+        # Generate PDF in Arabic and extract text to verify
+        arabic_pages = ["مرحبا بك", "هذا نص باللغة العربية."]
+        generated_pdf = generate_pdf(arabic_pages, target_language="ar")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertTrue(len(extracted_pages[0].strip()) > 0)
+        self.assertTrue(len(extracted_pages[1].strip()) > 0)
+
+    def test_pdf_generation_target_language_urdu(self):
+        # Generate PDF in Urdu and extract text to verify
+        urdu_pages = ["خوش آمدید", "یہ اردو ٹیکسٹ ہے۔"]
+        generated_pdf = generate_pdf(urdu_pages, target_language="ur")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertTrue(len(extracted_pages[0].strip()) > 0)
+        self.assertTrue(len(extracted_pages[1].strip()) > 0)
+
     def test_pdf_generation_target_language_english(self):
         # Generate PDF in English and extract text to verify
         english_pages = ["Hello World", "This is English text."]
@@ -248,6 +285,66 @@ class WatermarkPDFUnitTests(TestCase):
         watermarked = apply_watermark(
             pdf_file=pdf_file,
             text="안녕",  # Korean text
+            position="top-right",
+            opacity=0.5,
+            color_hex="00FF00"  # Without #
+        )
+        self.assertIsNotNone(watermarked)
+        self.assertTrue(len(watermarked.getvalue()) > 0)
+
+    def test_watermark_japanese_support(self):
+        # Create a mock source PDF
+        pdf_file = create_mock_pdf(["Original English Text"])
+        
+        # Apply Japanese watermark
+        watermarked = apply_watermark(
+            pdf_file=pdf_file,
+            text="こんにちは",  # Japanese text
+            position="top-right",
+            opacity=0.5,
+            color_hex="00FF00"  # Without #
+        )
+        self.assertIsNotNone(watermarked)
+        self.assertTrue(len(watermarked.getvalue()) > 0)
+
+    def test_watermark_hindi_support(self):
+        # Create a mock source PDF
+        pdf_file = create_mock_pdf(["Original English Text"])
+        
+        # Apply Hindi watermark
+        watermarked = apply_watermark(
+            pdf_file=pdf_file,
+            text="नमस्ते",  # Hindi text
+            position="top-right",
+            opacity=0.5,
+            color_hex="00FF00"  # Without #
+        )
+        self.assertIsNotNone(watermarked)
+        self.assertTrue(len(watermarked.getvalue()) > 0)
+
+    def test_watermark_arabic_support(self):
+        # Create a mock source PDF
+        pdf_file = create_mock_pdf(["Original English Text"])
+        
+        # Apply Arabic watermark
+        watermarked = apply_watermark(
+            pdf_file=pdf_file,
+            text="مرحبا",  # Arabic text
+            position="top-right",
+            opacity=0.5,
+            color_hex="00FF00"  # Without #
+        )
+        self.assertIsNotNone(watermarked)
+        self.assertTrue(len(watermarked.getvalue()) > 0)
+
+    def test_watermark_urdu_support(self):
+        # Create a mock source PDF
+        pdf_file = create_mock_pdf(["Original English Text"])
+        
+        # Apply Urdu watermark
+        watermarked = apply_watermark(
+            pdf_file=pdf_file,
+            text="خوش",  # Urdu text
             position="top-right",
             opacity=0.5,
             color_hex="00FF00"  # Without #
