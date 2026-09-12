@@ -34,7 +34,7 @@ A robust, production-ready Django REST Framework (DRF) API for advanced PDF proc
 First, clone the repository to your local machine and navigate into the project directory:
 
 ```bash
-git clone https://github.com/your-username/Python-Developer-Practical-Coding-Assessment.git
+git clone https://github.com/sawjal-sikder/Python-Developer-Practical-Coding-Assessment
 cd Python-Developer-Practical-Coding-Assessment
 ```
 
@@ -104,7 +104,7 @@ The server will spin up and run at **`http://127.0.0.1:8000/`**.
 
 You can also test both endpoints using Postman by sending `multipart/form-data` requests.
 
-### 1. PDF Translation API (`POST /api/translate-pdf/`)
+### 1. API A — PDF Language Translator (`POST /api/translate-pdf/`)
 
 - **URL**: `http://127.0.0.1:8000/api/translate-pdf/`
 - **Method**: `POST`
@@ -121,7 +121,7 @@ You can also test both endpoints using Postman by sending `multipart/form-data` 
 
 ---
 
-### 2. PDF Watermarking API (`POST /editor/pdf/watermark/`)
+### 2. API B — PDF Watermark (simplified) (`POST /editor/pdf/watermark/`)
 
 - **URL**: `http://127.0.0.1:8000/editor/pdf/watermark/`
 - **Method**: `POST`
