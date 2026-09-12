@@ -4,7 +4,12 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import HexColor
 
-from services.utils.services.pdf_generator import register_bangla_font, FONT_NAME as BANGLA_FONT_NAME
+from services.utils.services.pdf_generator import (
+    register_bangla_font,
+    register_korean_font,
+    FONT_NAME as BANGLA_FONT_NAME,
+    KOREAN_FONT_NAME,
+)
 
 
 def contains_bangla(text):
@@ -14,6 +19,13 @@ def contains_bangla(text):
     return bool(re.search(r"[\u0980-\u09FF]", text))
 
 
+def contains_korean(text):
+    """
+    Check if a string contains any Korean Hangul characters.
+    """
+    return bool(re.search(r"[\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f]", text))
+
+
 def create_watermark_page(text, position, opacity, color_hex, width, height):
     """
     Generate a single-page PDF containing the transparent styled watermark text in memory.
@@ -21,12 +33,20 @@ def create_watermark_page(text, position, opacity, color_hex, width, height):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=(width, height))
     
-    # Choose font: Use NotoSansBengali if Bangla text is detected, otherwise fallback to standard Helvetica
+    # Choose font: Use NotoSansBengali if Bangla text is detected,
+    # NotoSansKorean if Korean text is detected, otherwise fallback to standard Helvetica
     font_name = "Helvetica"
     if contains_bangla(text):
         try:
             register_bangla_font()
             font_name = BANGLA_FONT_NAME
+        except Exception:
+            # Fallback to standard Helvetica if font registration fails
+            font_name = "Helvetica"
+    elif contains_korean(text):
+        try:
+            register_korean_font()
+            font_name = KOREAN_FONT_NAME
         except Exception:
             # Fallback to standard Helvetica if font registration fails
             font_name = "Helvetica"

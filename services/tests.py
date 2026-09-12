@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from reportlab.pdfgen import canvas
 
-from services.utils.services.translator import translate_pages
+from services.utils.services.translator import translate_pages, translate_text
 from services.utils.services.pdf_reader import extract_text
 from services.utils.services.pdf_generator import generate_pdf
 from services.utils.services.watermark import apply_watermark
@@ -33,16 +33,26 @@ class TranslatorUnitTests(TestCase):
 
     @patch("deep_translator.GoogleTranslator.translate")
     def test_translate_pages_success(self, mock_translate):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
         # Setup mock behavior
         mock_translate.return_value = "হ্যালো, কেমন আছেন? ||| আশা করি ভালো আছেন।"
         
         pages = ["Hello, how are you?", "Hope you are doing well."]
-        result = translate_pages(pages, "en", "bn")
+        
+        f = StringIO()
+        with redirect_stdout(f):
+            result = translate_pages(pages, "en", "bn")
         
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], "হ্যালো, কেমন আছেন?")
         self.assertEqual(result[1], "আশা করি ভালো আছেন।")
         mock_translate.assert_called_once_with("Hello, how are you? ||| Hope you are doing well.")
+        
+        output = f.getvalue()
+        self.assertIn("হ্যালো, কেমন আছেন?", output)
+        self.assertIn("আশা করি ভালো আছেন।", output)
 
     def test_translate_pages_same_languages(self):
         pages = ["Hello, how are you?", "Hope you are doing well."]
@@ -65,6 +75,29 @@ class TranslatorUnitTests(TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0], "হ্যালো")
         self.assertEqual(result[1], "ভালো")
+
+    @patch("deep_translator.GoogleTranslator.translate")
+    def test_translate_text_success(self, mock_translate):
+        from contextlib import redirect_stdout
+        from io import StringIO
+
+        mock_translate.return_value = "হ্যালো"
+        
+        f = StringIO()
+        with redirect_stdout(f):
+            result = translate_text("Hello", "en", "bn")
+            
+        self.assertEqual(result, "হ্যালো")
+        self.assertEqual(f.getvalue().strip(), "হ্যালো")
+        mock_translate.assert_called_once_with("Hello")
+
+    def test_translate_text_empty(self):
+        result = translate_text("", "en", "bn")
+        self.assertEqual(result, "")
+
+    def test_translate_text_same_languages(self):
+        result = translate_text("Hello", "en", "en")
+        self.assertEqual(result, "Hello")
 
 
 class PDFProcessingUnitTests(TestCase):
@@ -95,6 +128,15 @@ class PDFProcessingUnitTests(TestCase):
         self.assertEqual(len(extracted_pages), 2)
         self.assertIn("হ", extracted_pages[0])
         self.assertIn("বাংলা", extracted_pages[1])
+
+    def test_pdf_generation_target_language_korean(self):
+        # Generate PDF in Korean and extract text to verify
+        korean_pages = ["안녕하세요", "이것은 한국어 텍스트입니다."]
+        generated_pdf = generate_pdf(korean_pages, target_language="ko")
+        extracted_pages = extract_text(generated_pdf)
+        self.assertEqual(len(extracted_pages), 2)
+        self.assertIn("안녕하세요", extracted_pages[0])
+        self.assertIn("한국어", extracted_pages[1])
 
     def test_pdf_generation_target_language_english(self):
         # Generate PDF in English and extract text to verify
@@ -191,6 +233,21 @@ class WatermarkPDFUnitTests(TestCase):
         watermarked = apply_watermark(
             pdf_file=pdf_file,
             text="গোপনীয়",  # Bangla text
+            position="top-right",
+            opacity=0.5,
+            color_hex="00FF00"  # Without #
+        )
+        self.assertIsNotNone(watermarked)
+        self.assertTrue(len(watermarked.getvalue()) > 0)
+
+    def test_watermark_korean_support(self):
+        # Create a mock source PDF
+        pdf_file = create_mock_pdf(["Original English Text"])
+        
+        # Apply Korean watermark
+        watermarked = apply_watermark(
+            pdf_file=pdf_file,
+            text="안녕",  # Korean text
             position="top-right",
             opacity=0.5,
             color_hex="00FF00"  # Without #

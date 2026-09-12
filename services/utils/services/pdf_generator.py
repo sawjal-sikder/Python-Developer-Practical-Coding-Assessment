@@ -19,6 +19,14 @@ FONT_PATH = (
     / "NotoSansBengali-Regular.ttf"
 )
 
+KOREAN_FONT_NAME = "NotoSansKorean"
+
+KOREAN_FONT_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "fonts"
+    / "NotoSansKR-Regular.ttf"
+)
+
 
 def register_bangla_font():
 
@@ -37,12 +45,33 @@ def register_bangla_font():
         )
 
 
+def register_korean_font():
+
+    if KOREAN_FONT_NAME not in pdfmetrics.getRegisteredFontNames():
+
+        if not KOREAN_FONT_PATH.exists():
+            raise FileNotFoundError(
+                f"Font not found: {KOREAN_FONT_PATH}"
+            )
+
+        pdfmetrics.registerFont(
+            TTFont(
+                KOREAN_FONT_NAME,
+                str(KOREAN_FONT_PATH)
+            )
+        )
+
+
 def generate_pdf(pages, target_language="bn"):
 
     target_language = target_language.lower()
     if target_language in ("bn", "bengali"):
         register_bangla_font()
         font_name = FONT_NAME
+        shaping = True
+    elif target_language in ("ko", "korean", "ko-kr"):
+        register_korean_font()
+        font_name = KOREAN_FONT_NAME
         shaping = True
     else:
         font_name = "Helvetica"
