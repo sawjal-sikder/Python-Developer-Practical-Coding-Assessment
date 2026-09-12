@@ -2,7 +2,6 @@ import time
 import requests
 from deep_translator.exceptions import TranslationNotFound, LanguageNotSupportedException
 
-# Apply requests monkeypatch to bypass Google Translate 500 error for default python-requests User-Agent
 original_get = requests.get
 
 def patched_get(url, *args, **kwargs):
@@ -30,7 +29,7 @@ def translate_text(
     if not text.strip():
         return text
 
-    # Normalize language codes
+    # Normalize language
     source_language = source_language.lower()
     target_language = target_language.lower()
 
@@ -65,24 +64,24 @@ def translate_pages(
     if not pages:
         return []
 
-    # Normalize language codes
+    # Normalize language
     source_language = source_language.lower()
     target_language = target_language.lower()
 
     if source_language == target_language:
         return list(pages)
 
-    # We use ' ||| ' as the separator for batch translation
+    #separator for batch translation
     separator = ' ||| '
     
-    # Keep track of empty pages and non-empty pages
+    # Tracking empty pages and non-empty pages
     translated_pages = ["" for _ in pages]
     non_empty_indices = [i for i, page in enumerate(pages) if page.strip()]
     
     if not non_empty_indices:
         return translated_pages
 
-    # Group non-empty pages into chunks of at most 4000 characters
+    #Chunks of characters
     chunks = []
     current_chunk_indices = []
     current_chunk_len = 0
@@ -102,7 +101,7 @@ def translate_pages(
     if current_chunk_indices:
         chunks.append((current_chunk_indices, current_chunk_len))
 
-    # Translate each chunk using GoogleTranslator
+    # Translate each chunk
     translator = GoogleTranslator(source=source_language, target=target_language)
     
     for chunk_indices, _ in chunks:
@@ -122,16 +121,14 @@ def translate_pages(
                 break
         
         if translated_text:
-            # Split the translated text back into pages
+            # Split the translated text
             parts = [part.strip() for part in translated_text.split('|||')]
             if len(parts) == len(chunk_indices):
                 for idx, part in zip(chunk_indices, parts):
                     translated_pages[idx] = part
             else:
-                # If the parts count doesn't match, force page-by-page fallback
                 translated_text = ""
 
-        # Page-by-page fallback for this chunk if batch translation failed or structure mismatched
         if not translated_text:
             for idx in chunk_indices:
                 page_text = pages[idx].strip()
@@ -144,9 +141,10 @@ def translate_pages(
                         if attempt < max_retries - 1:
                             time.sleep(1.5 * (attempt + 1))
                             continue
-                        page_translated = page_text  # Final fallback to original text
+                        page_translated = page_text  
                 translated_pages[idx] = page_translated
 
+    # print translated pages for debugging
     for page in translated_pages:
         if page.strip():
             print(page)
